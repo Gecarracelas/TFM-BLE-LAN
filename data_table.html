@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dispositivos BLE</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Dispositivos BLE alcanzados</h1>
+    <p id="estado-escaneo"></p>
+
+    <label for="filtro-nombre">Filtrar por dispositivo:</label>
+    <select id="filtro-nombre">
+        <option value="">Todos</option>
+        {% for item in datos %}
+            <option value="{{ item['Nombre'] }}">{{ item['Nombre'] }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="filtro-vendedor">Filtrar por Fabricante:</label>
+    <select id="filtro-vendedor">
+        <option value="">Todos</option>
+        {% for item in datos %}
+            <option value="{{ item['Vendedor'] }}">{{ item['Vendedor'] }}</option>
+        {% endfor %}
+    </select>
+
+    <form method="post">
+        <input type="hidden" name="accion" value="iniciar_escaneo">
+        <button type="submit">Iniciar Escaneo</button>
+    </form>
+    <form method="post">
+        <input type="hidden" name="accion" value="visualizar_dispositivos">
+        <button type="submit">Visualizar Dispositivos</button>
+    </form>
+    <form method="post">
+        <input type="hidden" name="accion" value="cargar_historico">
+        <button type="submit">Cargar Histórico</button>
+    </form>
+
+    <table border="1">
+        <tr>
+            <th>Nombre</th>
+            <th>MAC</th>
+            <th>Potencia de Señal</th>
+            <th>Vendedor</th>
+            <th>Servicios</th>
+        </tr>
+        {% for item in datos %}
+        <tr>
+            <td>{{ item['Nombre'] }}</td>
+            <td>{{ item['MAC'] }}</td>
+            <td>{{ item['Potencia de Señal'] }}</td>
+            <td>{{ item['Vendedor'] }}</td>
+            <td>{{ item['Servicios'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <script>
+    $(document).ready(function() {
+        $('#filtro-nombre, #filtro-vendedor').change(filtrarTabla);
+
+        $('form').on('submit', function() {
+            var visualizar = $('button[name="visualizar_dispositivos"]').val();
+            if (!visualizar) {
+                $('#estado-escaneo').text('Escaneo en proceso. Por favor, espere...');
+            }
+        });
+
+        function filtrarTabla() {
+            var nombreSeleccionado = $('#filtro-nombre').val();
+            var vendedorSeleccionado = $('#filtro-vendedor').val();
+
+            $('table tr:not(:first-child)').each(function() {
+                var nombre = $(this).find('td:eq(0)').text();
+                var vendedor = $(this).find('td:eq(3)').text();
+
+                if ((nombreSeleccionado === '' || nombre === nombreSeleccionado) &&
+                    (vendedorSeleccionado === '' || vendedor === vendedorSeleccionado)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+
+        if ($('table tr').length > 1) {
+            $('#estado-escaneo').text('Escaneo completado.');
+        }
+    });
+    </script>
+</body>
+</html>
+
