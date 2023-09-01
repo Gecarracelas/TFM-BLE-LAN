@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todos los Dispositivos</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#fechaFiltro, #horaFiltro').on('input', filtrarDatos);
+
+            function filtrarDatos() {
+                var fecha = $('#fechaFiltro').val();
+                var hora = $('#horaFiltro').val();
+
+                $('table tr:not(:first-child)').each(function() {
+                    var cellFechaHora = $(this).find('td:eq(0)').text();
+                    var cellFecha = cellFechaHora.split(" ")[0];
+                    var cellHora = cellFechaHora.split(" ")[1].split(":")[0];  // Tomamos solo la hora
+
+                    if ((fecha && cellFecha !== fecha) || (hora && cellHora !== hora)) {
+                        $(this).hide();
+                    } else {
+                        $(this).show();
+                    }
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+
+<a href="/">Volver a la página principal</a>
+
+<h2>Todos los dispositivos registrados:</h2>
+
+<label for="fechaFiltro">Filtrar por fecha (formato YYYY-MM-DD):</label>
+<input type="date" id="fechaFiltro">
+
+<label for="horaFiltro">Filtrar por hora (formato HH):</label>
+<input type="number" id="horaFiltro" min="0" max="23">
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Fecha y Hora</th>
+            <th>Nombre</th>
+            <th>MAC</th>
+            <th>Potencia de Señal</th>
+            <th>Vendedor</th>
+            <th>Servicios</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for dispositivo in datos %}
+        <tr>
+            <td>{{ dispositivo["Fecha y Hora"] }}</td>
+            <td>{{ dispositivo["Nombre"] }}</td>
+            <td>{{ dispositivo["MAC"] }}</td>
+            <td>{{ dispositivo["Potencia de Señal"] }}</td>
+            <td>{{ dispositivo["Vendedor"] }}</td>
+            <td>{{ dispositivo["Servicios"] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>
