@@ -10,6 +10,7 @@
 
     <!-- Hipervínculo para volver a la página principal -->
     <a href="/">Inicio</a>
+    <br>
 
     <label for="filtro-nombre">Filtrar por dispositivo:</label>
     <select id="filtro-nombre">
@@ -30,24 +31,24 @@
     <!-- Iniciar Escaneo -->
     <form method="post" action="/">
         <input type="hidden" name="accion" value="iniciar_escaneo">
-        <button type="submit">Iniciar Escaneo</button>
+        <button type="submit">Escaneo</button>
     </form>
 
     <!-- Almacenar Resultados -->
     <form method="post" action="/">
         <input type="hidden" name="accion" value="visualizar_dispositivos">
-        <button type="submit">Almacenar Resultados</button>
+        <button type="submit">Guardar</button>
     </form>
 
     <!-- Cargar Histórico -->
     <form action="/todos_los_dispositivos" method="get">
-        <button type="submit">Cargar Histórico</button>
+        <button type="submit">Inventario</button>
     </form>
 
     <!-- Eliminar todos los dispositivos -->
     <form method="post" action="/">
         <input type="hidden" name="accion" value="eliminar_dispositivos">
-        <button type="submit">Eliminar todos los dispositivos</button>
+        <button type="submit">Eliminar datos</button>
     </form>
 
     <table border="1">
