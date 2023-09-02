@@ -9,11 +9,65 @@ app = Flask(__name__)
 
 ruta = './backup.pickle'
 
+def verificar_rfkill_desbloqueado():
+    try:
+        output = subprocess.check_output(['rfkill', 'list', 'bluetooth'], text=True)
+        return 'Soft blocked: yes' not in output
+    except subprocess.CalledProcessError:
+        return False
+
+def verificar_bluetooth_encendido():
+    try:
+        output = subprocess.check_output(['bluetoothctl', 'show'], text=True)
+        return 'Powered: yes' in output
+    except subprocess.CalledProcessError:
+        return False
+
 def ejecutar_sniffer():
     crear_auxfile = subprocess.run(['touch', ruta])
+
     desbloquear_rfkill = subprocess.run(['rfkill', 'unblock', 'bluetooth'])
+    # Control de desbloqueo y encendido de interfaces Bluetooth a nivel de SO
+    if not verificar_rfkill_desbloqueado():
+        print("Error: No se pudo desbloquear la interfaz Bluetooth.")
+        return
+
     encender_bluetooth()
+
+    if not verificar_bluetooth_encendido():
+        print("Error: No se pudo encender la interfaz Bluetooth.")
+        return
+
+    # Listar interfaces Bluetooth disponibles
+
     listar = subprocess.run(['rfkill', '-r'])
+
+    # btlesniffer se utiliza como subproceso dado que fue instalado y es utilizado como un comando más de Linux
+    # Source: https://github.com/scipag/btle-sniffer
+
+    # MIT License
+    # Copyright (c) 2017 scip AG
+    # Permission is hereby granted, free of charge, to any person obtaining a copy
+    # of this software and associated documentation files (the "Software"), to deal
+    # in the Software without restriction, including without limitation the rights
+    # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    # copies of the Software, and to permit persons to whom the Software is
+    # furnished to do so, subject to the following conditions:
+
+    # The above copyright notice and this permission notice shall be included in all
+    # copies or substantial portions of the Software.
+
+    # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    # SOFTWARE.
+
+    #license_attributions: https://github.com/scipag/btle-sniffer/blob/master/LICENSE
+
+    # Params para ajustar la salida del sniffer y tiempo de ejecución
     sniffer = subprocess.Popen(['btlesniffer', '-c', '-o', ruta])
     time.sleep(30)
     sniffer.send_signal(signal.SIGINT)
@@ -21,15 +75,16 @@ def ejecutar_sniffer():
     guardar_datos_en_archivo()
 
 def encender_bluetooth():
-    subprocess.run(["bluetoothctl", "power", "on"])
+    subprocess.run(['bluetoothctl', 'power', 'on'])
 
 def apagar_bluetooth():
-    subprocess.run(["bluetoothctl", "power", "off"])
+    subprocess.run(['bluetoothctl', 'power', 'off'])
 
 def guardar_datos_en_archivo():
     with open(ruta, 'rb') as f:
         datos_serializados = f.read()
-
+    # Los datos de salida de btlesniffer son serializados y almacenados en binario
+    # Para no modificar el códido fuente del sniffer, se realiza deserializado y agrega fecha y hora luego de pasarlo a texto
     datos_deserializados = pickle.loads(datos_serializados)
     fecha_hora_escaneo = time.strftime('%Y-%m-%d %H:%M:%S')
     archivo_texto = './backup_legible.txt'
@@ -42,6 +97,7 @@ def cargar_datos(ruta):
     try:
         with open(ruta, 'r') as f:
             for linea in f:
+                # Se recolectan los datos más relevantes de cada dispositivo y se aplica parsing para lograr un diccionario legible
                 partes = linea.strip().split(";")
                 while len(partes) < 5:
                     partes.append("")
@@ -59,6 +115,7 @@ def cargar_datos(ruta):
     except FileNotFoundError:
         print(f'El archivo {ruta} no se encuentra. No se han cargado los datos.')
     return datos
+
 
 def renombrar_archivos():
     contador = 1
